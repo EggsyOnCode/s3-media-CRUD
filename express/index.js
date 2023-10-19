@@ -109,7 +109,7 @@ app.delete("/api/posts/:id", async (req, res) => {
 
   await prisma.posts.delete({ where: { id } });
 
-  res.status(200).send("Post Successfully deleted");
+  res.status(200).send(post);
 });
 
 app.listen(8080, () => console.log("listening on port 8080"));
