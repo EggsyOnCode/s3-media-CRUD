@@ -1,8 +1,5 @@
 import express from "express";
-
 import multer from "multer";
-import sharp from "sharp";
-import crypto from "crypto";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -14,7 +11,7 @@ app.get("/api/posts", async (req, res) => {
   res.send(posts);
 });
 
-app.post("/api/posts", upload.single("image"), async (req, res) => {
+app.post("/api/posts", async (req, res) => {
   res.status(201).send(post);
 });
 
