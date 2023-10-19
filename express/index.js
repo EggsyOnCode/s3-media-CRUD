@@ -3,8 +3,9 @@ import multer from "multer";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import dotnev from 'dotenv'
-dotnev.config()
+import dotnev from "dotenv";
+dotnev.config();
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 ///multer config -- storing images temp in memorySTorage for processing etc
 
@@ -19,9 +20,19 @@ const upload = multer({ storage: storage });
 
 //FETCHING THE ENV VARS
 const accessKey = process.env.ACCESS_KEY;
-const secretKey = process.env.SECRET.ACCESS_KEY;
+const secretKey = process.env.SECRET_ACCESS_KEY;
 const bucketName = process.env.BUCKET_NAME;
 const bucketRegion = process.env.BUCKET_REGION;
+
+//creating an s3 bucket
+
+const s3 = new S3Client({
+  region: bucketRegion,
+  credentials: {
+    accessKeyId: accessKey,
+    secretAccessKey: secretKey,
+  },
+});
 
 app.get("/api/posts", async (req, res) => {
   const posts = await prisma.posts.findMany({ orderBy: [{ created: "desc" }] });
@@ -31,9 +42,19 @@ app.get("/api/posts", async (req, res) => {
 
 app.post("/api/posts", upload.single("image"), async (req, res) => {
   // req.file.buffer --> image data
-
   console.log(req.body);
   console.log(req.file);
+
+  //command to be executed by s3 bucket
+  const params = {
+    Bucket: bucketName,
+    Key: req.file.originalname,
+    Body: req.file.buffer,
+    ContentType: req.file.mimetype,
+  };
+  const command = new PutObjectCommand(params);
+
+  await s3.send(command);
 });
 
 app.delete("/api/posts/:id", async (req, res) => {
