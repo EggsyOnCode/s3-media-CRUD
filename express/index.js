@@ -11,6 +11,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -51,7 +52,7 @@ app.get("/api/posts", async (req, res) => {
       Key: post.imageName,
     };
     const command = new GetObjectCommand(objParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 60*10 });
+    const url = await getSignedUrl(s3, command, { expiresIn: 60 * 10 });
     post.imageUrl = url;
   }
 
@@ -92,7 +93,23 @@ app.post("/api/posts", upload.single("image"), async (req, res) => {
 
 app.delete("/api/posts/:id", async (req, res) => {
   const id = +req.params.id;
-  res.send(post);
+  const post = await prisma.posts.findUnique({ where: { id } });
+
+  if (!post) {
+    res.status(404).send("post not found!");
+    return;
+  }
+  const params = {
+    Bucket: bucketName,
+    Key: post.imageName,
+  };
+
+  const command = new DeleteObjectCommand(params);
+  await s3.send(command);
+
+  await prisma.posts.delete({ where: { id } });
+
+  res.status(200).send("Post Successfully deleted");
 });
 
 app.listen(8080, () => console.log("listening on port 8080"));
