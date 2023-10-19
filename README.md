@@ -41,4 +41,3 @@ yarn dev
 ```
 
 Visit the app at [localhost 3000](http://localhost:3000)
-# s3-media-CRUD
