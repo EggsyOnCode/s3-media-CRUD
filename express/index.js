@@ -49,19 +49,31 @@ app.post("/api/posts", upload.single("image"), async (req, res) => {
   console.log(req.body);
   console.log(req.file);
 
-  //image resizing 
-  const resized = await sharp(req.file.buffer).resize({width: 1080, height: 1920, fit: "contain"}).toBuffer();
+  //image resizing
+  const resized = await sharp(req.file.buffer)
+    .resize({ width: 1080, height: 1920, fit: "contain" })
+    .toBuffer();
 
   //command to be executed by s3 bucket
+  const image = randomBytes();
   const params = {
     Bucket: bucketName,
-    Key: randomBytes(),
+    Key: image,
     Body: resized,
     ContentType: req.file.mimetype,
   };
   const command = new PutObjectCommand(params);
 
   await s3.send(command);
+
+  const post = await prisma.posts.create({
+    data: {
+      imageName: image,
+      caption: req.body.caption,
+    },
+  });
+
+  res.send(post);
 });
 
 app.delete("/api/posts/:id", async (req, res) => {
