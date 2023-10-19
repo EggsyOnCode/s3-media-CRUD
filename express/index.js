@@ -7,7 +7,12 @@ import { PrismaClient } from "@prisma/client";
 import dotnev from "dotenv";
 dotnev.config();
 import sharp from "sharp";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 ///multer config -- storing images temp in memorySTorage for processing etc
 
@@ -40,7 +45,16 @@ const s3 = new S3Client({
 
 app.get("/api/posts", async (req, res) => {
   const posts = await prisma.posts.findMany({ orderBy: [{ created: "desc" }] });
-  console.log(req.body);
+  for (const post of posts) {
+    const objParams = {
+      Bucket: bucketName,
+      Key: post.imageName,
+    };
+    const command = new GetObjectCommand(objParams);
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    post.imageUrl = url;
+  }
+
   res.send(posts);
 });
 
