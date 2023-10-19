@@ -31,14 +31,14 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-  
+        cache-dependency-path: './express/package-lock.json'
         
     - name : Installing Dependencies
       run  : npm ci
-      working-directory: express
+
     - name : Adding Env Vars
       run : |
         touch .env
         echo '${{secrets.PROD_ENV_VAR}}' > .env
-      working-directory: express
+
         
