@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import cors from "cors";
 import bodyParser from "body-parser";
+import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import dotnev from "dotenv";
 dotnev.config();
@@ -17,6 +18,8 @@ app
 const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+const randomBytes = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
 //FETCHING THE ENV VARS
 const accessKey = process.env.ACCESS_KEY;
@@ -48,7 +51,7 @@ app.post("/api/posts", upload.single("image"), async (req, res) => {
   //command to be executed by s3 bucket
   const params = {
     Bucket: bucketName,
-    Key: req.file.originalname,
+    Key: randomBytes(),
     Body: req.file.buffer,
     ContentType: req.file.mimetype,
   };
