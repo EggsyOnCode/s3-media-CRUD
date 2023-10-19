@@ -51,7 +51,7 @@ app.get("/api/posts", async (req, res) => {
       Key: post.imageName,
     };
     const command = new GetObjectCommand(objParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(s3, command, { expiresIn: 60*10 });
     post.imageUrl = url;
   }
 
