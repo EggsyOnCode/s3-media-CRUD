@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import dotnev from "dotenv";
 dotnev.config();
+import sharp from "sharp";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 ///multer config -- storing images temp in memorySTorage for processing etc
@@ -48,11 +49,14 @@ app.post("/api/posts", upload.single("image"), async (req, res) => {
   console.log(req.body);
   console.log(req.file);
 
+  //image resizing 
+  const resized = await sharp(req.file.buffer).resize({width: 1080, height: 1920, fit: "contain"}).toBuffer();
+
   //command to be executed by s3 bucket
   const params = {
     Bucket: bucketName,
     Key: randomBytes(),
-    Body: req.file.buffer,
+    Body: resized,
     ContentType: req.file.mimetype,
   };
   const command = new PutObjectCommand(params);
