@@ -18,10 +18,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 ///multer config -- storing images temp in memorySTorage for processing etc
 
 const app = express();
-app
-  .use(bodyParser.urlencoded({ extended: false }))
-  .use(cors())
-  .use(bodyParser.json());
+app.use(cors());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json());
 const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -46,6 +46,7 @@ const s3 = new S3Client({
 
 app.get("/api/posts", async (req, res) => {
   const posts = await prisma.posts.findMany({ orderBy: [{ created: "desc" }] });
+  console.log(posts);
   for (const post of posts) {
     const objParams = {
       Bucket: bucketName,

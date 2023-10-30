@@ -11,13 +11,14 @@ export default function NewPost() {
   const submit = async (event) => {
     event.preventDefault();
 
-    const postUrl = "http://localhost:8080/api/posts";
+    // const postUrl = "http://localhost:8080/api/posts";
+    const remoteUrl = "https://43.205.96.75/api/posts";
 
     const formData = new FormData();
     formData.append("image", file);
     formData.append("caption", caption);
 
-    await axios.post(postUrl, formData, {
+    await axios.post(remoteUrl, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
